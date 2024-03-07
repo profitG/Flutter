@@ -3,6 +3,10 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_webtoon_app/models/webtoon_detail_model.dart';
 import 'package:flutter_webtoon_app/models/webtoon_episode_model.dart';
 import 'package:flutter_webtoon_app/services/api_service.dart';
+import 'package:flutter_webtoon_app/widget/episode_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class DetailScreen extends StatefulWidget {
   final String title, thumb, id;
@@ -21,12 +25,44 @@ class DetailScreen extends StatefulWidget {
 class _DetailScreenState extends State<DetailScreen> {
   late Future<WebtoonDetailModel> webtoon;
   late Future<List<WebtoonEpisodeModel>> episodes;
+  late SharedPreferences prefs;
+  bool isLiked = false;
+
+  Future initPrefs() async {
+    prefs = await SharedPreferences.getInstance();
+    final likedToons = prefs.getStringList("likedToons");
+    if (likedToons != null) {
+      if (likedToons.contains(widget.id)) {
+        setState(() {
+          isLiked = true;
+        });
+      }
+    } else {
+      await prefs.setStringList('likedToons', []);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    initPrefs();
     webtoon = ApiService.getToonById(widget.id);
     episodes = ApiService.getLatestEpisodes(widget.id);
+  }
+
+  onHeartTap() async {
+    final likedToons = prefs.getStringList("likedToons");
+    if (likedToons != null) {
+      if (isLiked) {
+        likedToons.remove(widget.id);
+      } else {
+        likedToons.add(widget.id);
+      }
+      await prefs.setStringList('likedToons', likedToons);
+      setState(() {
+        isLiked = !isLiked;
+      });
+    }
   }
 
   @override
@@ -39,6 +75,14 @@ class _DetailScreenState extends State<DetailScreen> {
         elevation: 1,
         foregroundColor: Colors.green,
         backgroundColor: Colors.white,
+        actions: [
+          IconButton(
+            onPressed: onHeartTap,
+            icon: Icon(
+              isLiked ? Icons.favorite : Icons.favorite_outline,
+            ),
+          ),
+        ],
         title: Text(
           widget.title,
           style: const TextStyle(
@@ -131,35 +175,9 @@ class _DetailScreenState extends State<DetailScreen> {
                     return Column(
                       children: [
                         for (var episode in snapshot.data!)
-                          Container(
-                            margin: const EdgeInsets.symmetric(vertical: 3),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: Colors.white,
-                                border:
-                                    Border.all(color: Colors.green.shade400)),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 10, horizontal: 20),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    episode.title,
-                                    style: TextStyle(
-                                      color: Colors.green.shade400,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.arrow_right_rounded,
-                                    color: Colors.green.shade400,
-                                  ),
-                                ],
-                              ),
-                            ),
+                          EpisodeWidget(
+                            episode: episode,
+                            webtoon_id: widget.id,
                           ),
                       ],
                     );
