@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_webtoon_app/styles/style_theme.dart';
 import 'package:flutter_webtoon_app/screens/home_screen.dart';
 
 void main() {
@@ -12,6 +13,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        primaryColor: ColorStyles.dgray,
+      ),
       home: Container(
         child: HomeScreen(),
       ),
