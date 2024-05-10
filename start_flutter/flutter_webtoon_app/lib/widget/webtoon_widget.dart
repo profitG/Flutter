@@ -92,12 +92,10 @@ class Webtoon extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    height: 14,
                     padding: const EdgeInsets.symmetric(horizontal: 6.0),
                     color: ColorStyles.gray,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(1),
-                    ),
+                    // decoration:
+                    //     BoxDecoration(borderRadius: BorderRadius.circular(4)),
                     child: const Text(
                       "새 미리풀기 3호",
                       style: TextStyle(
